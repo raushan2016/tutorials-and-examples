@@ -150,8 +150,6 @@ spec:
 
           echo "Setting label $DRIVER_LABEL=reset on $NODE to stop dcgm-exporter..."
           kubectl label node $NODE $DRIVER_LABEL=reset --overwrite
-          echo "Waiting 30s for label change to propagate and dcgm-exporter to stop..."
-          sleep 30
 
           DCGM_POD=$(kubectl get pods -n gke-managed-system -o wide --field-selector spec.nodeName=$NODE | grep dcgm-exporter | awk "{print \$1}" || true)
           if [ -n "$DCGM_POD" ]; then
@@ -174,18 +172,12 @@ spec:
               echo "No dcgm-exporter pod found on $NODE."
           fi
 
-          echo "Waiting 30s for GPU resources to be fully released..."
-          sleep 30
-
           echo "Running GPU reset on $NODE..."
           echo "--- Diagnostic Info ---"
           echo "LD_LIBRARY_PATH: $LD_LIBRARY_PATH"
-          echo "--- nvidia-smi ---"
-          /usr/local/nvidia/bin/nvidia-smi || echo "nvidia-smi failed"
-          echo "--- VBIOS Info ---"
-          /usr/local/nvidia/bin/nvidia-smi --query-gpu=vbios_version,uuid --format=csv || echo "Failed to get VBIOS info"
           echo "--- End Diagnostic Info ---"
           
+          sleep infinity
           echo "--- PRE-RESET --- $(date)"
           if /usr/local/nvidia/bin/nvidia-smi --gpu-reset; then
             echo "GPU reset command SUCCEEDED --- $(date)"
